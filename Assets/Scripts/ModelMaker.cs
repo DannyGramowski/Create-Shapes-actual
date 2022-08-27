@@ -24,7 +24,6 @@ namespace Create_Shape {
             equationInputs.Add(yBound);
             Vector3 vector3 = new Vector2(2, 3);
             // if (optionalXbound != null) equationInputs.Add(optionalXbound);
-            print("test " + vector3);
             Graph graph = new Graph(equationInputs, graphRange, numSteps);
             switch (meshType) {
                 case MeshType.square:
@@ -32,6 +31,9 @@ namespace Create_Shape {
                     break;
                 case MeshType.hemisphere:
                     create3DPoints = CreateHemispherePoints;
+                    break;
+                case MeshType.triangle:
+                    create3DPoints = CreateTrianglePoints;
                     break;
             }
             var p1 = graph.points[0];
@@ -50,14 +52,9 @@ namespace Create_Shape {
 
             List<(Vector3,string)> CreateSquarePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
                 List<(Vector3,string)> squarePoints = new List<(Vector3, string)>();
-                int mid = mainGraphPoints.Count/2 + 1;
-                print("main graph count " + mainGraphPoints.Count);
-                print("bounding graph count " + boundingLinePoints.Count);
-                print("mid point " + mid);
-                //int left = 0, right = mainGraphPoints.Count/2+2;
+                int mid = mainGraphPoints.Count/2;
+
                 for (int i = 0; i < mid; i++) {
-                    print("i " + i + " main graph " + mainGraphPoints[i]);
-                    print("i " + i + " main graph " + mainGraphPoints[mainGraphPoints.Count - i - 1]);
                     Vector2 point1 = mainGraphPoints[i];
                     Vector2 point2 = mainGraphPoints[mainGraphPoints.Count - i - 1];
                     float distance = Vector2.Distance(point1, point2);
@@ -66,6 +63,8 @@ namespace Create_Shape {
                     squarePoints.Add((new Vector3(point2.x, distance, point2.y),"right top " + i));
                     squarePoints.Add((new Vector3(point2.x, 0, point2.y),"right bot " + i));
                 }
+                var midPt = mainGraphPoints[mid];
+                squarePoints.Add((new Vector3(midPt.x, 0, midPt.y), "mid point"));
                 return squarePoints;
             }
 
@@ -80,7 +79,7 @@ namespace Create_Shape {
 
                     hemispherePoints.Add((new Vector3(point1.x, 0, point1.y), "left bot " + i));
                     for(int vertex = 1; vertex < numVertices; vertex++) {
-                        float angle = (Mathf.PI) / numVertices * vertex;
+                        float angle = ((Mathf.PI) / numVertices )* vertex;
                         float cartesianX = radius * Mathf.Cos(angle);
                         float cartesianY = radius * Mathf.Sin(angle);
                         hemispherePoints.Add((new Vector3(cartesianX, cartesianY, point1.y), "vertex " + vertex + " layer " + i));
@@ -90,11 +89,41 @@ namespace Create_Shape {
 
                 return hemispherePoints;
             }
-        }
 
-        public enum MeshType {
+
+        #region triangle
+        Mesh CreateTriangleMesh() {
+            Mesh mesh = new Mesh();
+            return null;
+        }
+        List<(Vector3, string)> CreateTrianglePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
+                List<(Vector3, string)> trianglePoints = new List<(Vector3, string)> ();
+                int mid = mainGraphPoints.Count / 2 + 1;
+                for (int i = 0; i < mid; i++) {
+                    Vector2 point1 = mainGraphPoints[i];
+                    Vector2 point2 = mainGraphPoints[mainGraphPoints.Count - i - 1];
+
+                    trianglePoints.Add((new Vector3(point1.x, 0, point1.y), "left bot " + i));
+                    trianglePoints.Add((new Vector3(point2.x, 0, point2.y), "right bot " + i));
+
+                    float length = Vector2.Distance(point1, point2);
+                    float x = (point1.x+point2.x)/2;
+                    float y = length*Mathf.Sin(1/3f*Mathf.PI);
+                    float z = (point1.y + point2.y) / 2;
+                    Debug.Log("p1 " + point1 + " p2 " + point2);
+                    Debug.Log("triangle coords " + x + " " + y + " " + z);
+                    trianglePoints.Add((new Vector3(x,y,z), "top " + i));
+                }
+                return trianglePoints;
+            }
+
+        #endregion
+    }
+
+    public enum MeshType {
             square,
-            hemisphere
+            hemisphere,
+            triangle
         }
 
     } 

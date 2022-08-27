@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+
 namespace Create_Shape {
     public class Equation {
         string eqStr;
@@ -22,7 +23,7 @@ namespace Create_Shape {
         //need input for variable value
         public double Execute((char, double)[] values) {
             var temp = new List<object>(splitEquation);//prevent side effects
-            InsertValues(values);
+            InsertValues(values, temp);
             //Utility.PrintEnumerable(splitEquation);
          /*   string output = "";
             for(int i = 0; i < splitEquation.Count; i++) { //(var value in splitEquation) {
@@ -30,49 +31,48 @@ namespace Create_Shape {
             }
                 Debug.Log(output);*/
 
-            for (int i = 0; i < splitEquation.Count; i++) {//exponent
+            for (int i = 0; i < temp.Count; i++) {//exponent
 
-                if (splitEquation[i].GetType() == typeof(char) && (char)splitEquation[i] == '^') {
-                    ExecuteOperation(Exponent, i);
+                if (temp[i].GetType() == typeof(char) && (char)temp[i] == '^') {
+                    ExecuteOperation(Exponent, i, temp);
                 }
             }
 
-            for (int i = 0; i < splitEquation.Count; i++) {//multiply, divide
-                if (splitEquation[i].GetType() != typeof(char)) continue;
+            for (int i = 0; i < temp.Count; i++) {//multiply, divide
+                if (temp[i].GetType() != typeof(char)) continue;
 
-                if ((char)splitEquation[i] == '*') {
-                    ExecuteOperation(Multiply, i);
+                if ((char)temp[i] == '*') {
+                    ExecuteOperation(Multiply, i, temp);
 
-                } else if ((char)splitEquation[i] == '/') {
-                    ExecuteOperation(Divide, i);
+                } else if ((char)temp[i] == '/') {
+                    ExecuteOperation(Divide, i, temp);
 
                 }
             }
 
-            for (int i = 0; i < splitEquation.Count; i++) {//add, subtract
-                if (splitEquation[i].GetType() != typeof(char)) continue;
+            for (int i = 0; i < temp.Count; i++) {//add, subtract
+                if (temp[i].GetType() != typeof(char)) continue;
 
-                if ((char)splitEquation[i] == '-') {
-                    ExecuteOperation(Subtract, i);
+                if ((char)temp[i] == '-') {
+                    ExecuteOperation(Subtract, i, temp);
 
-                } else if ((char)splitEquation[i] == '+') {
-                    ExecuteOperation(Add, i);
+                } else if ((char)temp[i] == '+') {
+                    ExecuteOperation(Add, i, temp);
 
                 }
             }
 
             string output1 = "";
-            if (splitEquation.Count != 1) {
-                for (int i = 0; i < splitEquation.Count; i++) {
-                    output1 += (splitEquation[i]).GetType() + " " + splitEquation[i].ToString() + ", ";
+            if (temp.Count != 1) {
+                for (int i = 0; i < temp.Count; i++) {
+                    output1 += (temp[i]).GetType() + " " + temp[i].ToString() + ", ";
                 }
                 Debug.Log(output1);
             }
 
-            Debug.Assert(splitEquation.Count == 1, "equation not fully solved");
+            Debug.Assert(temp.Count == 1, "equation not fully solved");
 
-            double result = (double) splitEquation[0];
-            splitEquation = temp;//prevent side effects
+            double result = (double)temp[0];
             //replace equations with eq.Execute
             return result;
         }
@@ -87,14 +87,15 @@ namespace Create_Shape {
         }
 
 
-        private void ExecuteOperation(Operation operation, int index) {
+        private void ExecuteOperation(Operation operation, int index, List<object> splitEquation) {
+            Utility.EnumerableElementsToString(splitEquation);
             double d1 = (double)splitEquation[index - 1];
             double d2 = (double)splitEquation[index + 1];
             splitEquation.RemoveRange(index, 2);
             splitEquation[index - 1] = operation(d1, d2);
         }
 
-        private void InsertValues((char, double)[] values) {
+        private void InsertValues((char, double)[] values, List<object> splitEquation) {
             foreach (var item in values) {
                 //Debug.Log("insert " + item.Item1 + " = " + item.Item2);
                 for (int i = 0; i < splitEquation.Count; i++) {

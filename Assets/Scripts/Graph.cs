@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
@@ -45,24 +46,38 @@ namespace Create_Shape{
         //multithread
         //does not add final element in array, needs one more iterations
         List<Vector2> GenerateGraph(Equation equation, Color color) {
-            List<Vector2> graph = new List<Vector2>(numSteps);
-            var tasks = new Task[numSteps];
-            for(int i = 0; i < numSteps; i++) {
-                Debug.Log("created task for " + i);
+            List<Vector2> graph = new List<Vector2>(numSteps+1);
+            var tasks = new Task<Vector2>[numSteps+1];
+            for(int i = 0; i <= numSteps; i++) {
+               // Debug.Log("created task for " + i);
                 int input = i ;
                 //Action temp = () => graph[input] = CreatePointValues(input, equation);
-                tasks[i] = Task.Factory.StartNew(() => graph[input] = CreatePointValues(input, equation));
+                //Debug.Log("input " + input + " i " + i);
+                Task<Vector2> task = Task<Vector2>.Factory.StartNew(() => {
+                   // Debug.Log("Input " + input + " graph length " + graph.Count);
+                    return CreatePointValues(input, equation);
+                    });
+                tasks[input] = task;
                 //tasks[i].Start();
 //                tasks[i] = Task.Factory.StartNew(temp);
             }
             Task.WaitAll(tasks);
 
-            if(numSteps % 2 != 0) {//need to insert midpoint b/c even
+            for(int i = 0; i < tasks.Length; i++) {
+                graph.Add(tasks[i].Result);
+            }
+
+            graph.OrderBy(a => a.x);
+            if(numSteps % 2 != 0) {//need to insert midpoint b/c number of points is even since points = numsteps - 1
                 float x = graphDistance / 2 + graphRange.x;
                 float y = (float)equation.Execute(new[] { ('x', (double)x) });
                 Vector2 middleVector = new Vector2(x, y);
-                graph[numSteps / 2 + 1] = middleVector;//+2 = +1 for 0start arrays and + 2 to get the middle index
+                graph.Insert(graph.Count/2, middleVector);// +1 to get the middle index
             }
+            Debug.Log(Utility.EnumerableElementsToString(graph));
+
+            Debug.Log("graph " + graph.Count);
+            Debug.Log(Utility.EnumerableElementsToString(graph));
             return graph;
         }
 
@@ -70,7 +85,7 @@ namespace Create_Shape{
             double input = graphRange.x + (index * stepSize);
             //Debug.Log("created point value thread " + index + " with input " + input + " with equation parse " + Utility.EnumerableElementsToString(equation.splitEquation));
             float result = (float)equation.Execute(new[] { ('x', input) });
-            Debug.Log("created point value thread " + index + " with input " + input + " with result " + result + " with equation parse " + Utility.EnumerableElementsToString(equation.splitEquation));
+            //Debug.Log("created point value thread " + index + " with input " + input + " with result " + result + " with equation parse " + //Utility.EnumerableElementsToString(equation.splitEquation));
             return new Vector2((float)input, result);
         }
 

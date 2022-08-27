@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Create_Shape {
+    [SelectionBase]
     public class Point : MonoBehaviour{
         public float x, y, z;
         public string equationName;

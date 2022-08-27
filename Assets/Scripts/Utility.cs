@@ -14,7 +14,7 @@ namespace Create_Shape {
             foreach(var obj in ts) {
                 str += obj.ToString() + ", ";
             }
-            str.Remove(str.Length - 1);//remove last comma
+            //str.Remove(str.Length - 1);//remove last comma
             return str;
         }
     }
