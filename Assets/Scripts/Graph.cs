@@ -43,8 +43,6 @@ namespace Create_Shape{
             Debug.Log(Utility.EnumerableElementsToString(intersections));
         }
 
-        //multithread
-        //does not add final element in array, needs one more iterations
         List<Vector2> GenerateGraph(Equation equation, Color color) {
             List<Vector2> graph = new List<Vector2>(numSteps+1);
             var tasks = new Task<Vector2>[numSteps+1];
@@ -74,10 +72,10 @@ namespace Create_Shape{
                 Vector2 middleVector = new Vector2(x, y);
                 graph.Insert(graph.Count/2, middleVector);// +1 to get the middle index
             }
-            Debug.Log(Utility.EnumerableElementsToString(graph));
+          //  Debug.Log(Utility.EnumerableElementsToString(graph));
 
             Debug.Log("graph " + graph.Count);
-            Debug.Log(Utility.EnumerableElementsToString(graph));
+            //Debug.Log(Utility.EnumerableElementsToString(graph));
             return graph;
         }
 
