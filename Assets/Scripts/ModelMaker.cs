@@ -20,6 +20,7 @@ namespace Create_Shape {
         private delegate List<(Vector3, string)> Create3DPoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain);
         private Create3DPoints create3DPoints;
         private Mesh modelMesh = null;
+       
 
         private void Start() {
             List<Graph.EquationInput> equationInputs = new List<Graph.EquationInput>();
@@ -82,13 +83,14 @@ namespace Create_Shape {
                 index++;
             }
 
+            print($"normals length {modelMesh.normals.Length}");
             for (int i = 0; i < modelMesh.triangles.Length; i += 3) {
-                Vector3 v1 = modelMesh.vertices[modelMesh.triangles[i]];
-                Vector3 v2 = modelMesh.vertices[modelMesh.triangles[i+1]];
-                Vector3 v3 = modelMesh.vertices[modelMesh.triangles[i+2]];
+                Vector3[] g = { modelMesh.vertices[modelMesh.triangles[i]], modelMesh.vertices[modelMesh.triangles[i + 1]], modelMesh.vertices[modelMesh.triangles[i + 2]] };
 
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawRay(GetTriangleNormal(v1, v2, v3));
+                int normalIndex = i / 3;
+                print($"normal ind {normalIndex}");
+                Gizmos.DrawRay(GetCenter(g), modelMesh.normals[i/3]);
                 
             }
 
@@ -178,8 +180,10 @@ namespace Create_Shape {
             mesh.vertices = FlattenVertices(vertices2D);
             var tris = CreateTriangleTris(vertices2D);
             mesh.triangles = ConvertTrisToInt(tris);
-            mesh.normals = CreateTriangleNormals(tris, mesh.vertices);
-            
+            var temp = CreateTriangleNormals(tris, mesh.vertices);
+
+           // mesh.RecalculateNormals();
+           // mesh.RecalculateTangents();
             return mesh;
         }
 
@@ -322,60 +326,3 @@ namespace Create_Shape {
         }
 
     } 
-
-/*float height = 1;
-float width = 1;
-
-
-void Start() {
-    Mesh mesh = new Mesh();
-    mesh.vertices = GenerateVertices();
-    mesh.uv = GenerateUV();
-    mesh.normals = GenerateNormals();
-    mesh.triangles = GenerateTris();
-    GetComponent<MeshFilter>().mesh = mesh;
-
-}
-
-private Vector3[] GenerateVertices() {
-    Vector3[] vertices = new Vector3[4] {
-            new Vector3(0, 0, 0),
-            new Vector3(width, 0, 0),
-            new Vector3(0, height, 0),
-            new Vector3(width, height, 0)
-        };
-    return vertices;
-}
-
-private int[] GenerateTris() {
-    int[] tris = new int[6]
-    {
-            // lower left triangle
-            0, 2, 1,
-            // upper right triangle
-            2, 3, 1
-    };
-    return tris;
-}
-
-private Vector3[] GenerateNormals() {
-    Vector3[] normals = new Vector3[4]
-   {
-            -Vector3.forward,
-            -Vector3.forward,
-            -Vector3.forward,
-            -Vector3.forward
-   };
-    return normals;
-}
-
-private Vector2[] GenerateUV() {
-    Vector2[] uv = new Vector2[4]
-    {
-            new Vector2(0, 0),
-            new Vector2(1, 0),
-            new Vector2(0, 1),
-            new Vector2(1, 1)
-    };
-    return uv;
-}*/
