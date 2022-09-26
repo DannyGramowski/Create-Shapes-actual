@@ -155,14 +155,14 @@ MonoBehaviour:
   pointPrefab: {fileID: 4253359930186587086, guid: 8ae0b1340dd6bf44ea2c90f916eeb278, type: 3}
   modelPointsParent: {fileID: 9061314718339861051, guid: 2b25349bbd6dd8740881033e8ca73733, type: 3}
   mainEquation:
-    equation: 3*x^2-4
+    equation: x^2-4
     dotColor: {r: 0, g: 0, b: 0, a: 0}
   yBound:
     equation: 0
     dotColor: {r: 0, g: 0, b: 0, a: 0}
   graphRange: {x: -3, y: 3}
   meshType: 2
-  numSteps: 12
+  numSteps: 1000
 --- !u!4 &469392787
 Transform:
   m_ObjectHideFlags: 0
