@@ -7,23 +7,20 @@ using System;
 
 namespace Create_Shape {
     public class ModelMaker : MonoBehaviour {
-
-        [SerializeField] Point pointPrefab;
-        [SerializeField] Transform modelPointsParent;
         //[SerializeField] List<Graph.EquationInput> equationInputs;
         [SerializeField] Graph.EquationInput mainEquation;
         [SerializeField] Graph.EquationInput yBound;//axis of rotation in rotate meshes
-                                                    // [SerializeField] Graph.EquationInput optionalXbound;
+        // [SerializeField] Graph.EquationInput optionalXbound;
         [SerializeField] Vector2 graphRange;
         [SerializeField] MeshType meshType;
         [SerializeField] int numSteps = 5;
         [SerializeField] private bool useDebugGizmos = true;
+        [SerializeField] private bool drawGrid = true;
 
         private delegate List<(Vector3, string)> Create3DPoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain);
         private readonly List<(Action<object[]>, object[])> gizmosDrawList = new List<(Action<object[]>, object[])>();
         private Create3DPoints create3DPoints;
-        private Mesh modelMesh = null;
-
+        private int gridSize = 50;
 
         private void Start() {
             List<Graph.EquationInput> equationInputs = new List<Graph.EquationInput>();
@@ -37,13 +34,13 @@ namespace Create_Shape {
             List<Vector3[]> points = new List<Vector3[]>();
 
             switch (meshType) {
-                case MeshType.square:
+                case MeshType.Square:
                     points = CreateSquarePoints(p1, p2, domain);
                     break;
-                case MeshType.hemisphere:
+                case MeshType.Hemisphere:
                     points = CreateHemispherePoints(p1, p2, domain, numSteps);
                     break;
-                case MeshType.triangle:
+                case MeshType.Triangle:
                     points = CreateHemispherePoints(p1, p2, domain, 1);
                     break;
             }
@@ -68,37 +65,27 @@ namespace Create_Shape {
                 var point2 = mesh.vertices[num2];
                 var point3 = mesh.vertices[num3];
                 
-                gizmosDrawList.Add((DrawLine, new object[]{point1, point2}));
-                gizmosDrawList.Add((DrawLine, new object[]{point2, point3}));
-                gizmosDrawList.Add((DrawLine, new object[]{point1, point3}));
+                gizmosDrawList.Add((DrawLine, new object[]{point1, point2, Color.blue}));
+                gizmosDrawList.Add((DrawLine, new object[]{point2, point3, Color.blue}));
+                gizmosDrawList.Add((DrawLine, new object[]{point1, point3, Color.blue}));
             }
-            modelMesh = mesh;
+
+            var offset = gridSize / 2;
+            for (int row = -offset; row < offset; row++) {
+                var point1 = new Vector3(-offset, 0, row);
+                var point2 = new Vector3(offset, 0, row);
+                gizmosDrawList.Add((DrawLine, new object[]{point1, point2}));
+                gizmosDrawList.Add((DrawLabel, new object[]{new Vector3(0,0,row), row.ToString()}));
+            }
+            
+            for (int column = -offset; column < offset; column++) {
+                var point1 = new Vector3(column, 0, -offset);
+                var point2 = new Vector3(column, 0, offset);
+                gizmosDrawList.Add((DrawLine, new object[] {point1, point2}));
+                gizmosDrawList.Add((DrawLabel, new object[] {new Vector3(column, 0, 0), column.ToString()}));
+            }
         }
         
-        //print(Utility.EnumerableElementsToString(mesh.vertices));
-        //Utility.EnumerableElementsToString(mesh.vertices);
-        /* for (int i = 0; i < mesh.vertices.Length; i++) {
-             GizmosDrawList.Add((DrawLabel, new object[] { mesh.vertices[i], i.ToString() }));
-         }
-         var tris = new List<Tri>();
-         for (int i = 0; i < mesh.triangles.Length; i += 3) {
-             tris.Add(new Tri(mesh.triangles[i], mesh.triangles[i + 1], mesh.triangles[i + 2]));
-             //Debug.Log($"({mesh.triangles[i]}, {mesh.triangles[i+1]}, {mesh.triangles[i+2]}), ");
-         }
-         */
-            /* foreach (var tri in tris) {
-                         int isAscending = IsAscending(new[] { tri.x, tri.y, tri.z });
-                         Color color;
-                         if (isAscending == 1) color = Color.green;
-                         else if (isAscending == -1) color = Color.blue;
-                         else color = Color.red;
-
-                         var point = GetCenter(new[] { mesh.vertices[tri.x], mesh.vertices[tri.y], mesh.vertices[tri.z] });
-                         GizmosDrawList.Add((DrawPoint, new object[] { point, color }));
-                     }*/
-            /*
-                    print(Utility.EnumerableElementsToString(tris));*/
-
         #region gizmoCallFunctions
         
         private void DrawPoint(object[] parameters) {
@@ -117,15 +104,17 @@ namespace Create_Shape {
         }
 
         private void DrawLine(object[] parameters) {
-            if (parameters.Length > 2) throw new Exception("too many parameters");
+            if (parameters.Length > 3) throw new Exception("too many parameters");
             var from = (Vector3)parameters[0];
             var to = (Vector3)parameters[1];
+            Color color = Color.black;
+            if(parameters.Length > 2)  color = (Color)parameters[2];
+            Gizmos.color = color;
             Gizmos.DrawLine(from, to);
         }
         #endregion
 
         private void OnDrawGizmos() {
-            if (modelMesh == null) return;
             if (!useDebugGizmos) return;
             foreach (var action in gizmosDrawList) {
                 action.Item1?.Invoke(action.Item2);
@@ -141,17 +130,7 @@ namespace Create_Shape {
             }
             return new Vector3(x, y, z) / graph.Length;
         }
-
-        Ray GetTriangleNormal(Vector3 p1, Vector3 p2, Vector3 p3) {
-            float dirX = p1.y * p2.z - p1.z * p2.y;
-            float dirY = p1.z * p2.x - p1.x * p2.z;
-            float dirZ = p1.x * p2.y - p1.y * p2.z;
-            Vector3 direction = new Vector3(dirX, dirY, dirZ);
-
-            Vector3 pos = GetCenter(new[] { p1, p2, p3 });
-            return new Ray(pos, direction.normalized);
-        }
-
+        
         List<Vector3[]> CreateSquarePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
             List<Vector3[]> squarePoints = new List<Vector3[]>();
             int mid = mainGraphPoints.Count / 2;
@@ -171,7 +150,6 @@ namespace Create_Shape {
                 botLeft[i] = new Vector3(point2.x, 0, point2.y);
             }
             var midPt = mainGraphPoints[mid];
-            //squarePoints.Add(new Vector3(midPt.x, 0, midPt.y));
             squarePoints.Add(endPoints);
             squarePoints.Add(botRight);
             squarePoints.Add(topRight);
@@ -180,7 +158,6 @@ namespace Create_Shape {
             return squarePoints;
         }
 
-      //  need to make return Vector3[]
         List<Vector3[]> CreateHemispherePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain, int subDivisions) {//1 is a triangle
             List<Vector3[]> hemispherePoints = new List<Vector3[]>();
             int mid = mainGraphPoints.Count / 2;
@@ -217,7 +194,6 @@ namespace Create_Shape {
         }
 
 
-        #region triangle
         Mesh CreateMesh(List<Vector3[]> points) {
             Mesh mesh = new Mesh();
             var vertices2D = points; // CreateTriangleVertices(mainGraphPoints, boundingLinePoints, graphRange);
@@ -230,47 +206,11 @@ namespace Create_Shape {
             mesh.RecalculateTangents();
             return mesh;
         }
-
-
-
-        List<Vector3[]> CreateTriangleVertices(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
-            List<Vector3[]> trianglePoints = new List<Vector3[]>();
-            int mid = mainGraphPoints.Count / 2;
-            var temp = mainGraphPoints[mid];
-            var startPoint = new Vector3(temp.x, 0, temp.y);
-            var middleEndPointV2 = (mainGraphPoints[0] + mainGraphPoints[mainGraphPoints.Count - 1]) / 2;
-            var middleEndPointV3 = new Vector3(middleEndPointV2.x, 0, middleEndPointV2.y);
-            trianglePoints.Add(new[] {startPoint, middleEndPointV3});
-
-            Vector3[] leftArr = new Vector3[mid];
-            Vector3[] rightArr = new Vector3[mid];
-            Vector3[] middleArr = new Vector3[mid];
-            for (int i = 0; i < mid; i++) {
-                Vector2 point1 = mainGraphPoints[i];
-                Vector2 point2 = mainGraphPoints[mainGraphPoints.Count - i - 1];
-
-                float length = Vector2.Distance(point1, point2);
-                float x = (point1.x + point2.x) / 2;
-                float y = length * Mathf.Sin(1 / 3f * Mathf.PI);
-                float z = (point1.y + point2.y) / 2;
-
-                middleArr[mid - 1 - i] = new Vector3(x, y, z);
-                leftArr[mid - 1 - i] = new Vector3(point1.x, 0, point1.y);
-                rightArr[mid - 1 - i] = new Vector3(point2.x, 0, point2.y);
-            }
-
-            trianglePoints.Add(leftArr);
-            trianglePoints.Add(middleArr);
-            trianglePoints.Add(rightArr);
-
-            return trianglePoints;
-        }
-
+        
         private int WrappingInt(int num, int len) {
             return (num + len) % len;
         }
 
-        //        tris need to be clockwise order
         List<Tri> CreateTris(List<Vector3[]> vertices) {
             List<Tri> triangles = new List<Tri>();
             int[] sideStarts = new int[vertices.Count - 1];
@@ -310,23 +250,6 @@ namespace Create_Shape {
             return triangles;
         }
 
-
-        //https://answers.unity.com/questions/187637/procedural-meshs-normals-are-reversed.html
-        Vector3[] CreateTriangleNormals(List<Tri> tris, Vector3[] verticies) {
-            Vector3[] triangles = new Vector3[tris.Count];
-            var origin = GetCenter(verticies);
-            for(int i = 0; i < tris.Count; i++) {
-                Vector3[] faceVerticies = new[] { verticies[tris[i].x], verticies[tris[i].y], verticies[tris[i].z] };
-                var normalRay = GetTriangleNormal(faceVerticies[0], faceVerticies[1], faceVerticies[2]);
-                var normal = normalRay.direction;
-                Vector3 vectorToCenter = origin - normalRay.origin;
-                normal = Mathf.Sign(Vector3.Dot(normal, vectorToCenter.normalized)) * -1 * normal;//normal is already normalized
-                triangles[i] = normal;
-            }
-            return triangles;
-        }
-
-        //different start indexes for different arrays
         (Tri, Tri) GenerateQuadTris(int firstStart, int secondStart) {
             return (new Tri(secondStart, firstStart, firstStart+1), new Tri(firstStart+1, secondStart+1, secondStart));
         }
@@ -360,11 +283,12 @@ namespace Create_Shape {
             }
             return output;
         }
-        #endregion
-        
 
         private class Tri {
-            public int x, y, z;
+            public readonly int x;
+            public readonly int y;
+            public readonly int z;
+
             public Tri(int x, int y, int z) {
                 this.x = x;
                 this.y = y;
@@ -378,9 +302,9 @@ namespace Create_Shape {
 
 
     public enum MeshType {
-            square,
-            hemisphere,
-            triangle
+            Square,
+            Hemisphere,
+            Triangle
         }
 
     } 
