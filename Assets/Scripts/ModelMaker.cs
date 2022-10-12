@@ -17,9 +17,10 @@ namespace Create_Shape {
         [SerializeField] Vector2 graphRange;
         [SerializeField] MeshType meshType;
         [SerializeField] int numSteps = 5;
+        [SerializeField] private bool useDebugGizmos = true;
 
         private delegate List<(Vector3, string)> Create3DPoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain);
-        private List<(Action<object[]>, object[])> GizmosDrawList = new List<(Action<object[]>, object[])>();
+        private readonly List<(Action<object[]>, object[])> gizmosDrawList = new List<(Action<object[]>, object[])>();
         private Create3DPoints create3DPoints;
         private Mesh modelMesh = null;
 
@@ -36,31 +37,56 @@ namespace Create_Shape {
             List<Vector3[]> points = new List<Vector3[]>();
 
             switch (meshType) {
-              /*  case MeshType.square:
+                case MeshType.square:
                     points = CreateSquarePoints(p1, p2, domain);
                     break;
                 case MeshType.hemisphere:
-                    create3DPoints = CreateHemispherePoints;
-                    break;*/
+                    points = CreateHemispherePoints(p1, p2, domain, numSteps);
+                    break;
                 case MeshType.triangle:
-                    MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-                    meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+                    points = CreateHemispherePoints(p1, p2, domain, 1);
+                    break;
+            }
 
-                    MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
-                    var mesh = CreateMesh(CreateTriangleVertices(p1, p2, domain));
-                    meshFilter.mesh = mesh;
-                    modelMesh = mesh;
-                    //print(Utility.EnumerableElementsToString(mesh.vertices));
-                    //Utility.EnumerableElementsToString(mesh.vertices);
-                   /* for (int i = 0; i < mesh.vertices.Length; i++) {
-                        GizmosDrawList.Add((DrawLabel, new object[] { mesh.vertices[i], i.ToString() }));
-                    }
-                    var tris = new List<Tri>();
-                    for (int i = 0; i < mesh.triangles.Length; i += 3) {
-                        tris.Add(new Tri(mesh.triangles[i], mesh.triangles[i + 1], mesh.triangles[i + 2]));
-                        //Debug.Log($"({mesh.triangles[i]}, {mesh.triangles[i+1]}, {mesh.triangles[i+2]}), ");
-                    }
-                    *//* foreach (var tri in tris) {
+            MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+            MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
+            meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+            var mesh = CreateMesh(points);
+            meshFilter.mesh = mesh;
+            
+            if(!useDebugGizmos) return;
+            foreach (var pt in mesh.vertices) { 
+                gizmosDrawList.Add((DrawPoint, new object[]{pt, Color.blue}));
+            }
+
+            for (int i = 0; i < mesh.triangles.Length; i += 3) {
+                var num1 = mesh.triangles[i];
+                var num2 = mesh.triangles[i + 1];
+                var num3 = mesh.triangles[i + 2];
+
+                var point1 = mesh.vertices[num1];
+                var point2 = mesh.vertices[num2];
+                var point3 = mesh.vertices[num3];
+                
+                gizmosDrawList.Add((DrawLine, new object[]{point1, point2}));
+                gizmosDrawList.Add((DrawLine, new object[]{point2, point3}));
+                gizmosDrawList.Add((DrawLine, new object[]{point1, point3}));
+            }
+            modelMesh = mesh;
+        }
+        
+        //print(Utility.EnumerableElementsToString(mesh.vertices));
+        //Utility.EnumerableElementsToString(mesh.vertices);
+        /* for (int i = 0; i < mesh.vertices.Length; i++) {
+             GizmosDrawList.Add((DrawLabel, new object[] { mesh.vertices[i], i.ToString() }));
+         }
+         var tris = new List<Tri>();
+         for (int i = 0; i < mesh.triangles.Length; i += 3) {
+             tris.Add(new Tri(mesh.triangles[i], mesh.triangles[i + 1], mesh.triangles[i + 2]));
+             //Debug.Log($"({mesh.triangles[i]}, {mesh.triangles[i+1]}, {mesh.triangles[i+2]}), ");
+         }
+         */
+            /* foreach (var tri in tris) {
                          int isAscending = IsAscending(new[] { tri.x, tri.y, tri.z });
                          Color color;
                          if (isAscending == 1) color = Color.green;
@@ -69,27 +95,16 @@ namespace Create_Shape {
 
                          var point = GetCenter(new[] { mesh.vertices[tri.x], mesh.vertices[tri.y], mesh.vertices[tri.z] });
                          GizmosDrawList.Add((DrawPoint, new object[] { point, color }));
-                     }*//*
+                     }*/
+            /*
                     print(Utility.EnumerableElementsToString(tris));*/
-                    return;
-            }
-
-            var modelPoints = create3DPoints?.Invoke(p1, p2, domain);
-            var parent = Instantiate(modelPointsParent);
-
-            /*foreach (var point in modelPoints) {//each point
-                Point newPoint = Instantiate(pointPrefab, parent);
-                newPoint.SetData(point.Item1, point.Item2);
-            }*/
-
-
-        }
 
         #region gizmoCallFunctions
-        private void DrawPoint(object[] paramaters) {
-            if (paramaters.Length > 2) throw new Exception("too many parameters");
-            var point = (Vector3)paramaters[0];
-            var color = (Color)paramaters[1];
+        
+        private void DrawPoint(object[] parameters) {
+            if (parameters.Length > 2) throw new Exception("too many parameters");
+            var point = (Vector3)parameters[0];
+            var color = (Color)parameters[1];
             Gizmos.color = color;
             Gizmos.DrawSphere(point, 0.1f);
         }
@@ -100,45 +115,21 @@ namespace Create_Shape {
             var text = (string)parameters[1];
             Handles.Label((Vector3)point, (string)text);
         }
-        #endregion
 
-        private int IsAscending(int[] ints) {
-            int output = ints[0] < ints[1] ? 1 : -1;
-            for (int i = 2; i < ints.Length; i++) {
-                if ((ints[i - 1] < ints[i] ? 1 : -1) != output) return 0;
-            }
-            return output;
+        private void DrawLine(object[] parameters) {
+            if (parameters.Length > 2) throw new Exception("too many parameters");
+            var from = (Vector3)parameters[0];
+            var to = (Vector3)parameters[1];
+            Gizmos.DrawLine(from, to);
         }
+        #endregion
 
         private void OnDrawGizmos() {
             if (modelMesh == null) return;
-
-            foreach (var action in GizmosDrawList) {
+            if (!useDebugGizmos) return;
+            foreach (var action in gizmosDrawList) {
                 action.Item1?.Invoke(action.Item2);
             }
-            // if (gizmoDrawn) return;
-            /*  int index = 0;
-              foreach(var pt in modelMesh.vertices) {
-                  //Gizmos.color = Color.red;
-                  //Gizmos.DrawSphere(pt, 0.1f);
-                  Handles.Label(pt , index.ToString());
-                  index++;
-              }
-
-              print($"normals length {modelMesh.normals.Length}");
-              for (int i = 0; i < modelMesh.triangles.Length; i += 3) {
-                  Vector3[] g = { modelMesh.vertices[modelMesh.triangles[i]], modelMesh.vertices[modelMesh.triangles[i + 1]], modelMesh.vertices[modelMesh.triangles[i + 2]] };
-
-                  Gizmos.color = Color.cyan;
-                  int normalIndex = i / 3;
-                  print($"normal ind {normalIndex}");
-                  //Gizmos.DrawRay(GetCenter(g), modelMesh.normals[i/3]);
-
-              }
-
-              Handles.Label(GetCenter(modelMesh.vertices), "center");
-              gizmoDrawn = true;*/
-
         }
 
         Vector3 GetCenter(Vector3[] graph) {
@@ -151,14 +142,6 @@ namespace Create_Shape {
             return new Vector3(x, y, z) / graph.Length;
         }
 
-
-        Vector3 RandomOffset() {
-            float x = UnityEngine.Random.value * 0.05f;
-            float y = UnityEngine.Random.value * 0.05f;
-            float z = UnityEngine.Random.value * 0.05f;
-            return new Vector3(x, y, z);
-        }
-
         Ray GetTriangleNormal(Vector3 p1, Vector3 p2, Vector3 p3) {
             float dirX = p1.y * p2.z - p1.z * p2.y;
             float dirY = p1.z * p2.x - p1.x * p2.z;
@@ -169,47 +152,65 @@ namespace Create_Shape {
             return new Ray(pos, direction.normalized);
         }
 
-        // Ray GetTriangleNormal(Tri tri) => GetTriangleNormal(tri.)
-        /* Nx = Ay* Bz - Az* By
-         Ny = Az* Bx - Ax* Bz
-         Nz = Ax* By - Ay* Bx*/
-
-        List<Vector3> CreateSquarePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
-            List<Vector3> squarePoints = new List<Vector3>();
+        List<Vector3[]> CreateSquarePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
+            List<Vector3[]> squarePoints = new List<Vector3[]>();
             int mid = mainGraphPoints.Count / 2;
-
+            Vector3[] endPoints = new Vector3[2];
+            Vector3[] botRight = new Vector3[mid];
+            Vector3[] topRight = new Vector3[mid];
+            Vector3[] topLeft = new Vector3[mid];
+            Vector3[] botLeft = new Vector3[mid];
             for (int i = 0; i < mid; i++) {
                 Vector2 point1 = mainGraphPoints[i];
                 Vector2 point2 = mainGraphPoints[mainGraphPoints.Count - i - 1];
                 float distance = Vector2.Distance(point1, point2);
-                squarePoints.Add(new Vector3(point1.x, 0, point1.y));
-                squarePoints.Add(new Vector3(point1.x, distance, point1.y));
-                squarePoints.Add(new Vector3(point2.x, distance, point2.y));
-                squarePoints.Add(new Vector3(point2.x, 0, point2.y));
+                
+                botRight[i] = new Vector3(point1.x, 0, point1.y);
+                topRight[i] = new Vector3(point1.x, distance, point1.y);
+                topLeft[i] = new Vector3(point2.x, distance, point2.y);
+                botLeft[i] = new Vector3(point2.x, 0, point2.y);
             }
             var midPt = mainGraphPoints[mid];
-            squarePoints.Add(new Vector3(midPt.x, 0, midPt.y));
+            //squarePoints.Add(new Vector3(midPt.x, 0, midPt.y));
+            squarePoints.Add(endPoints);
+            squarePoints.Add(botRight);
+            squarePoints.Add(topRight);
+            squarePoints.Add(topLeft);
+            squarePoints.Add(botLeft);
             return squarePoints;
         }
 
       //  need to make return Vector3[]
-        List<Vector3> CreateHemispherePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
-            List<Vector3> hemispherePoints = new List<Vector3>();
-            int mid = mainGraphPoints.Count / 2 + 1;
-            int numVertices = 2;
+        List<Vector3[]> CreateHemispherePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain, int subDivisions) {//1 is a triangle
+            List<Vector3[]> hemispherePoints = new List<Vector3[]>();
+            int mid = mainGraphPoints.Count / 2;
+            
+            var temp = mainGraphPoints[mid];
+            var startPoint = new Vector3(temp.x, 0, temp.y);
+            var middleEndPointV2 = (mainGraphPoints[0] + mainGraphPoints[mainGraphPoints.Count - 1]) / 2;
+            var middleEndPointV3 = new Vector3(middleEndPointV2.x, 0, middleEndPointV2.y);
+            hemispherePoints.Add(new[] {middleEndPointV3, startPoint});
+            
+            hemispherePoints.Add(new Vector3[mid]);//right
+            for(int i = 0; i < subDivisions; i++) {
+                hemispherePoints.Add(new Vector3[mid]);//subdivisions
+            }
+            hemispherePoints.Add(new Vector3[mid]);//left
+            subDivisions++;//deals with vertex starting at 1
             for (int i = 0; i < mid; i++) {
                 Vector2 point1 = mainGraphPoints[i];
-                Vector2 point2 = mainGraphPoints[mainGraphPoints.Count - i - 1];
+                Vector2 point2 = mainGraphPoints[^(i + 1)];
                 float radius = Vector2.Distance(point1, point2) / 2;
 
-                hemispherePoints.Add(new Vector3(point1.x, 0, point1.y));
-                for (int vertex = 1; vertex < numVertices; vertex++) {
-                    float angle = ((Mathf.PI) / numVertices) * vertex;
+                hemispherePoints[^1][i] = new Vector3(point1.x, 0, point1.y);
+                hemispherePoints[1][i] = new Vector3(point2.x, 0, point2.y);
+                for (int vertex = 1; vertex < subDivisions; vertex++) {
+                    float angle = ((Mathf.PI) / subDivisions) * vertex;
                     float cartesianX = radius * Mathf.Cos(angle);
                     float cartesianY = radius * Mathf.Sin(angle);
-                    hemispherePoints.Add(new Vector3(cartesianX, cartesianY, point1.y));
+                    var hemiPtVert = hemispherePoints[vertex + 1];
+                    hemiPtVert[i] = new Vector3(cartesianX, cartesianY, point1.y);
                 }
-                hemispherePoints.Add(new Vector3(point2.x, 0, point2.y));
             }
 
             return hemispherePoints;
@@ -330,8 +331,14 @@ namespace Create_Shape {
             return (new Tri(secondStart, firstStart, firstStart+1), new Tri(firstStart+1, secondStart+1, secondStart));
         }
 
-        Vector3[] FlattenVertices(List<Vector3[]> vertices2D) {
-            Vector3[] vertices = new Vector3[vertices2D[0].Length + vertices2D[1].Length * 3];
+        Vector3[] FlattenVertices(List<Vector3[]> vertices2D)
+        {
+            int len = 0;
+            foreach(var arr in vertices2D)
+            {
+                len += arr.Length;
+            }
+            Vector3[] vertices = new Vector3[len];
             int index = 0;
             foreach(var arr in vertices2D) {
                 foreach(var v3 in arr){
