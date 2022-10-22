@@ -55,7 +55,7 @@ namespace Create_Shape{
                    // Debug.Log("Input " + input + " graph length " + graph.Count);
                     return CreatePointValues(input, equation);
                     });
-                tasks[input] = task;
+                tasks[input] = task;   
                 //tasks[i].Start();
 //                tasks[i] = Task.Factory.StartNew(temp);
             }

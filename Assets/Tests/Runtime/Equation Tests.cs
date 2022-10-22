@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
+using NUnit.Framework;
 using Create_Shape;
 
 public class EquationTests {
@@ -83,4 +81,5 @@ public class EquationTests {
             Assert.AreEqual(-32.39, eq.Execute(args), 0.01);
         }
     }
+    
 

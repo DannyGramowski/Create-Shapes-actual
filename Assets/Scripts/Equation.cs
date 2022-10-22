@@ -1,76 +1,83 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEngine;
 
-namespace Create_Shape {
+namespace Create_Shape{
+
     public class Equation {
-        string eqStr;
+        string _eqStr = "";
+
         private delegate double Operation(double d1, double d2);
+
 //        List<Operation> operationList = new List<Operation>();
-        Dictionary<string, Equation> subEquasions = new Dictionary<string, Equation>();
-     //   List<double> IndexNums = new List<double>();
+        Dictionary<string, Equation> _subEquasions = new Dictionary<string, Equation>();
+
+        //   List<double> IndexNums = new List<double>();
         public List<object> splitEquation;
-        List<char> variables = new List<char>();
+        List<char> _variables = new List<char>();
 
         public Equation(string equation) {
-            eqStr = equation;
+            _eqStr = equation;
             ParseInput(equation);
+        }
+
+        public double Execute(double value) {
+            return Execute(new[] { (_variables[0], value) });
         }
 
         //need input for variable value
         public double Execute((char, double)[] values) {
-            var temp = new List<object>(splitEquation);//prevent side effects
+            var temp = new List<object>(splitEquation); //prevent side effects
             InsertValues(values, temp);
             //Utility.PrintEnumerable(splitEquation);
-         /*   string output = "";
-            for(int i = 0; i < splitEquation.Count; i++) { //(var value in splitEquation) {
-                output += splitEquation[i].ToString() + ", ";
-            }
-                Debug.Log(output);*/
+            /*   string output = "";
+               for(int i = 0; i < splitEquation.Count; i++) { //(var value in splitEquation) {
+                   output += splitEquation[i].ToString() + ", ";
+               }
+                   Debug.Log(output);*/
 
-            for (int i = 0; i < temp.Count; i++) {//exponent
+            for (int i = 0; i < temp.Count; i++) { //exponent
 
                 if (temp[i].GetType() == typeof(char) && (char)temp[i] == '^') {
                     ExecuteOperation(Exponent, i, temp);
+                    i -= 2;
                 }
             }
 
-            for (int i = 0; i < temp.Count; i++) {//multiply, divide
+            //when execute operation removes elements but i is not reduced
+            for (int i = 0; i < temp.Count; i++) { //multiply, divide
                 if (temp[i].GetType() != typeof(char)) continue;
 
                 if ((char)temp[i] == '*') {
                     ExecuteOperation(Multiply, i, temp);
+                    i -= 2;
 
                 } else if ((char)temp[i] == '/') {
                     ExecuteOperation(Divide, i, temp);
+                    i -= 2;
 
                 }
             }
 
-            for (int i = 0; i < temp.Count; i++) {//add, subtract
+            for (int i = 0; i < temp.Count; i++) { //add, subtract
                 if (temp[i].GetType() != typeof(char)) continue;
 
                 if ((char)temp[i] == '-') {
                     ExecuteOperation(Subtract, i, temp);
+                    i -= 2;
 
                 } else if ((char)temp[i] == '+') {
                     ExecuteOperation(Add, i, temp);
-
+                    i -= 2;
                 }
             }
 
-            string output1 = "";
-            if (temp.Count != 1) {
-                for (int i = 0; i < temp.Count; i++) {
-                    output1 += (temp[i]).GetType() + " " + temp[i].ToString() + ", ";
-                }
-                Debug.Log(output1);
-            }
 
-            Debug.Assert(temp.Count == 1, "equation not fully solved");
+
+            //SystemException.Assert(temp.Count == 1, "equation not fully solved");
 
             double result = (double)temp[0];
             //replace equations with eq.Execute
@@ -82,42 +89,51 @@ namespace Create_Shape {
         //x=-3/5
         public double[] GetIntersections() {
             double[] output = { };
-                
+
             return output;
         }
 
 
         private void ExecuteOperation(Operation operation, int index, List<object> splitEquation) {
-            Utility.EnumerableElementsToString(splitEquation);
+            //EnumerableElementsToString(splitEquation);
             double d1 = (double)splitEquation[index - 1];
             double d2 = (double)splitEquation[index + 1];
             splitEquation.RemoveRange(index, 2);
             splitEquation[index - 1] = operation(d1, d2);
         }
 
+        private void EnumerableElementsToString(IEnumerable enumerable) {
+            string output = "";
+            foreach (var v in enumerable) {
+                output += v.ToString() + ", ";
+            }
+
+            output = output[0..^1];
+            Console.WriteLine(output);
+        }
+
         private void InsertValues((char, double)[] values, List<object> splitEquation) {
             foreach (var item in values) {
                 //Debug.Log("insert " + item.Item1 + " = " + item.Item2);
                 for (int i = 0; i < splitEquation.Count; i++) {
-                    string str = splitEquation[i] as string;
-                    if (str != null) {
-                        if (str.Length > 2) {//equation
-                            splitEquation[i] = subEquasions[str].Execute(values);
-                        } else if (str.Contains(item.Item1)) {
-                            str = str.Replace(item.Item1.ToString(), item.Item2.ToString());
-                            int numNegatives = 0; ;
-                                for(int numNegativesIndex = 0; numNegativesIndex < str.Length; numNegativesIndex++) {
-                                    if(str[numNegativesIndex] == '-') {
-                                        numNegatives++;
-                                        if(numNegatives == 2) {
-                                        str = str.Substring(2);//remove double negatives cause by a -x where x < 0
-                                    }
-                                    } else {
-                                    numNegatives = 0;
+                    string str = splitEquation[i] as string ?? "";
+                    if (str.Length > 2) { //equation
+                        splitEquation[i] = _subEquasions[str].Execute(values);
+                    } else if (str.Contains(item.Item1)) {
+                        str = str.Replace(item.Item1.ToString(), item.Item2.ToString());
+                        int numNegatives = 0;
+                        for (int numNegativesIndex = 0; numNegativesIndex < str.Length; numNegativesIndex++) {
+                            if (str[numNegativesIndex] == '-') {
+                                numNegatives++;
+                                if (numNegatives == 2) {
+                                    str = str.Substring(2); //remove double negatives cause by a -x where x < 0
                                 }
-                                }
-                            splitEquation[i] = Double.Parse(str);
+                            } else {
+                                numNegatives = 0;
+                            }
                         }
+
+                        splitEquation[i] = Double.Parse(str);
                     }
                 }
             }
@@ -162,11 +178,11 @@ namespace Create_Shape {
                 int endInnerEquation = closeIndex - openIndex - 1;
                 string innerParenthesis = input.Substring(startInnerEquation, endInnerEquation);
 
-                string newEquationName = "eq" + (subEquasions.Count + 1);
+                string newEquationName = "eq" + (_subEquasions.Count + 1);
                 Equation newEquation = new Equation(innerParenthesis);
-                output = output.Remove(startInnerEquation - 1, endInnerEquation + 2);//extra 1 to remove paranthesis
-                output = output.Insert(openIndex, '#' + newEquationName + '#');//wrap name in #
-                subEquasions[newEquationName] = newEquation;
+                output = output.Remove(startInnerEquation - 1, endInnerEquation + 2); //extra 1 to remove paranthesis
+                output = output.Insert(openIndex, '#' + newEquationName + '#'); //wrap name in #
+                _subEquasions[newEquationName] = newEquation;
 
                 openIndex = output.IndexOf("(");
                 loop++;
@@ -174,6 +190,7 @@ namespace Create_Shape {
                     throw new Exception("infinite loop");
                 }
             }
+
             return output;
         }
 
@@ -182,27 +199,31 @@ namespace Create_Shape {
             int i = 0;
             //-5*-x-(25/3.3)^2
             int currentLength = 0;
-            if(input[0] == '-') {
-                input = input.Remove(0,1);
+            if (input[0] == '-') {
+                input = input.Remove(0, 1);
                 input = input.Insert(0, "-1*");
             }
-            while (i < input.Length) {//equation
+
+            while (i < input.Length) { //equation
                 if (input[i] == '#') {
                     i++;
-                    int StartEq = i;
+                    int startEq = i;
 
                     while (input[i] != '#') {
                         i++;
                     }
-                    string EquationID = input.Substring(StartEq, i - StartEq);
-                    output.Add(EquationID);
+
+                    string equationId = input.Substring(startEq, i - startEq);
+                    output.Add(equationId);
                 }
 
-                bool negNum = (input[i] == '-') && (i == 0 || (IsOperationToken(input[i]) && IsOperationToken(input[i - 1])));//determine if number is neg
+                bool negNum = (input[i] == '-') &&
+                              (i == 0 || (IsOperationToken(input[i]) &&
+                                          IsOperationToken(input[i - 1]))); //determine if number is neg
                 if (negNum) i++;
 
-                if (Char.IsLetter(input[i])) {//variables
-                    if (!variables.Contains(input[i])) variables.Add(input[i]);
+                if (Char.IsLetter(input[i])) { //variables
+                    if (!_variables.Contains(input[i])) _variables.Add(input[i]);
                     if (negNum) {
                         negNum = false;
                         output.Add("-" + input[i]);
@@ -217,19 +238,22 @@ namespace Create_Shape {
                     i++;
                 }
 
-                if (i != startDigit) {//add digits
-                    string num = i == input.Length ? input.Substring(startDigit) : input.Substring(startDigit, i - startDigit);// if i is the length of string need other substring
+                if (i != startDigit) { //add digits
+                    string num = i == input.Length
+                        ? input.Substring(startDigit)
+                        : input.Substring(startDigit,
+                            i - startDigit); // if i is the length of string need other substring
                     string signedNum = (negNum ? "-" : "") + num;
                     negNum = false;
                     output.Add(Double.Parse(signedNum));
                     i--;
                 }
 
-                if (negNum) {//neg not part of digit or letter
+                if (negNum) { //neg not part of digit or letter
                     i--;
                     output.Add(input[i]);
-                } else if (IsOperationToken(input[i])) {//operation tokens
-                                                        //if (input[i] != '-') {//prevent - being counted if used in neg letter or digit
+                } else if (IsOperationToken(input[i])) { //operation tokens
+                    //if (input[i] != '-') {//prevent - being counted if used in neg letter or digit
                     output.Add(input[i]);
                     //}
                 }
@@ -241,6 +265,7 @@ namespace Create_Shape {
                 currentLength = output.Count;
                 i++;
             }
+
             return output;
         }
 
@@ -254,6 +279,5 @@ namespace Create_Shape {
         private static double Multiply(double d1, double d2) => d1 * d2;
         private static double Divide(double d1, double d2) => d1 / d2;
         private static double Exponent(double d1, double d2) => Math.Pow(d1, d2);
-
     }
 }

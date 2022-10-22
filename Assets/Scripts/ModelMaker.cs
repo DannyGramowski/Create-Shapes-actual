@@ -22,7 +22,12 @@ namespace Create_Shape {
         private Create3DPoints create3DPoints;
         private int gridSize = 50;
 
-        private void Start() {
+        public void Generate(Graph.EquationInput mainEQ, Graph.EquationInput newYBound, Vector2 newDomain, MeshType type) {
+            mainEquation = mainEQ;
+            yBound = newYBound;
+            graphRange = newDomain;
+            meshType = type;
+            
             List<Graph.EquationInput> equationInputs = new List<Graph.EquationInput>();
             equationInputs.Add(mainEquation);
             equationInputs.Add(yBound);
@@ -51,6 +56,7 @@ namespace Create_Shape {
             var mesh = CreateMesh(points);
             meshFilter.mesh = mesh;
             
+            #if UNITY_EDITOR
             if(!useDebugGizmos) return;
             foreach (var pt in mesh.vertices) { 
                 gizmosDrawList.Add((DrawPoint, new object[]{pt, Color.blue}));
@@ -84,6 +90,7 @@ namespace Create_Shape {
                 gizmosDrawList.Add((DrawLine, new object[] {point1, point2}));
                 gizmosDrawList.Add((DrawLabel, new object[] {new Vector3(column, 0, 0), column.ToString()}));
             }
+            #endif
         }
         
         #region gizmoCallFunctions
@@ -308,3 +315,5 @@ namespace Create_Shape {
         }
 
     } 
+    
+    
