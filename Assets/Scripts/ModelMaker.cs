@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEditor;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Create_Shape {
     public class ModelMaker : MonoBehaviour {
@@ -128,7 +129,7 @@ namespace Create_Shape {
             }
         }
 
-        Vector3 GetCenter(Vector3[] graph) {
+        internal Vector3 GetCenter(Vector3[] graph) {
             float x = 0, y = 0, z = 0;
             foreach (Vector3 v in graph) {
                 x += v.x;
@@ -138,7 +139,7 @@ namespace Create_Shape {
             return new Vector3(x, y, z) / graph.Length;
         }
         
-        List<Vector3[]> CreateSquarePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
+        internal List<Vector3[]> CreateSquarePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
             List<Vector3[]> squarePoints = new List<Vector3[]>();
             int mid = mainGraphPoints.Count / 2;
             Vector3[] endPoints = new Vector3[2];
@@ -165,7 +166,7 @@ namespace Create_Shape {
             return squarePoints;
         }
 
-        List<Vector3[]> CreateHemispherePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain, int subDivisions) {//1 is a triangle
+        internal List<Vector3[]> CreateHemispherePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain, int subDivisions) {//1 is a triangle
             List<Vector3[]> hemispherePoints = new List<Vector3[]>();
             int mid = mainGraphPoints.Count / 2;
             
@@ -201,7 +202,7 @@ namespace Create_Shape {
         }
 
 
-        Mesh CreateMesh(List<Vector3[]> points) {
+        internal Mesh CreateMesh(List<Vector3[]> points) {
             Mesh mesh = new Mesh();
             var vertices2D = points; // CreateTriangleVertices(mainGraphPoints, boundingLinePoints, graphRange);
             mesh.vertices = FlattenVertices(vertices2D);
@@ -218,7 +219,7 @@ namespace Create_Shape {
             return (num + len) % len;
         }
 
-        List<Tri> CreateTris(List<Vector3[]> vertices) {
+        internal List<Tri> CreateTris(List<Vector3[]> vertices) {
             List<Tri> triangles = new List<Tri>();
             int[] sideStarts = new int[vertices.Count - 1];
             int origin = 0;
@@ -257,18 +258,17 @@ namespace Create_Shape {
             return triangles;
         }
 
-        (Tri, Tri) GenerateQuadTris(int firstStart, int secondStart) {
+        internal (Tri, Tri) GenerateQuadTris(int firstStart, int secondStart) {
             return (new Tri(secondStart, firstStart, firstStart+1), new Tri(firstStart+1, secondStart+1, secondStart));
         }
 
-        Vector3[] FlattenVertices(List<Vector3[]> vertices2D)
-        {
+        internal T[] FlattenVertices<T>(List<T[]> vertices2D) {
             int len = 0;
             foreach(var arr in vertices2D)
             {
                 len += arr.Length;
             }
-            Vector3[] vertices = new Vector3[len];
+            T[] vertices = new T[len];
             int index = 0;
             foreach(var arr in vertices2D) {
                 foreach(var v3 in arr){
@@ -283,26 +283,50 @@ namespace Create_Shape {
             int[] output = new int[tris.Count * 3];
             int index = 0;
             foreach (Tri tr in tris) {
-                output[index] = tr.x;
-                output[index + 1] = tr.y;
-                output[index + 2] = tr.z;
+                output[index] = tr.X;
+                output[index + 1] = tr.Y;
+                output[index + 2] = tr.Z;
                 index += 3;
             }
             return output;
         }
 
-        private class Tri {
-            public readonly int x;
-            public readonly int y;
-            public readonly int z;
+        public class Tri {
+            public readonly int X;
+            public readonly int Y;
+            public readonly int Z;
 
             public Tri(int x, int y, int z) {
-                this.x = x;
-                this.y = y;
-                this.z = z;
+                this.X = x;
+                this.Y = y;
+                this.Z = z;
             }
 
-            public override string ToString() => $"tri ({x}, {y}, {z})";
+            public override int GetHashCode() {
+                int output = (91 * X * X - 28 * Y * Y*Y) * (3+Z);
+                return output;
+            }
+
+            public override string ToString() => $"tri ({X}, {Y}, {Z})";
+        }
+        
+        //this class should only be used in testing
+        public class TestModelMaker {
+            private readonly ModelMaker maker;
+            public TestModelMaker(ModelMaker mm) {
+                maker = mm;
+            }
+
+            public List<Vector3[]> TestCreateSquarePoints(List<Vector2> mainGraph, List<Vector2> bounding, Vector2 domain) {
+                return maker.CreateSquarePoints(mainGraph, bounding, domain);
+            }
+
+            public int[] TestFlattenVertices(List<int[]> nums) {
+                return maker.FlattenVertices(nums);
+            }
+            public (Tri, Tri) TestGenerateQuadTris(int num1, int num2) {
+                return maker.GenerateQuadTris(num1, num2);
+            }
         }
     }
 
