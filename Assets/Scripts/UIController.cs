@@ -24,7 +24,7 @@ namespace Create_Shape {
             float left = float.Parse(_domainField1.text);
             float right = float.Parse(_domainField2.text);
             Vector2 domain = left < right ? new Vector2(left, right) : new Vector2(right, left);
-            MeshType type = MeshType.Triangle;
+            MeshType type = MeshType.Square;
             _modelMaker.Generate(maineq, yEq,domain,type);
         }
     }

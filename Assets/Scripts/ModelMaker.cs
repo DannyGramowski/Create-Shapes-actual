@@ -29,9 +29,7 @@ namespace Create_Shape {
             graphRange = newDomain;
             meshType = type;
             
-            List<Graph.EquationInput> equationInputs = new List<Graph.EquationInput>();
-            equationInputs.Add(mainEquation);
-            equationInputs.Add(yBound);
+            List<Graph.EquationInput> equationInputs = new List<Graph.EquationInput>(){mainEquation, yBound};
             // if (optionalXbound != null) equationInputs.Add(optionalXbound);
             Graph graph = new Graph(equationInputs, graphRange, numSteps);
             var p1 = graph.points[0];
@@ -142,7 +140,13 @@ namespace Create_Shape {
         internal List<Vector3[]> CreateSquarePoints(List<Vector2> mainGraphPoints, List<Vector2> boundingLinePoints, Vector2 domain) {
             List<Vector3[]> squarePoints = new List<Vector3[]>();
             int mid = mainGraphPoints.Count / 2;
-            Vector3[] endPoints = new Vector3[2];
+            
+            var temp = mainGraphPoints[mid];
+            var startPoint = new Vector3(temp.x, 0, temp.y);
+            var middleEndPointV2 = (mainGraphPoints[0] + mainGraphPoints[mainGraphPoints.Count - 1]) / 2;
+            var middleEndPointV3 = new Vector3(middleEndPointV2.x, 0, middleEndPointV2.y);
+            
+            Vector3[] endPoints = {middleEndPointV3, startPoint};
             Vector3[] botRight = new Vector3[mid];
             Vector3[] topRight = new Vector3[mid];
             Vector3[] topLeft = new Vector3[mid];
@@ -159,10 +163,10 @@ namespace Create_Shape {
             }
             var midPt = mainGraphPoints[mid];
             squarePoints.Add(endPoints);
-            squarePoints.Add(botRight);
-            squarePoints.Add(topRight);
-            squarePoints.Add(topLeft);
             squarePoints.Add(botLeft);
+            squarePoints.Add(topLeft);
+            squarePoints.Add(topRight);
+            squarePoints.Add(botRight);
             return squarePoints;
         }
 
@@ -303,7 +307,7 @@ namespace Create_Shape {
             }
 
             public override int GetHashCode() {
-                int output = (91 * X * X - 28 * Y * Y*Y) * (3+Z);
+                int output = (91 * X * X - 28 * Y * Y * Y) * (3+Z);
                 return output;
             }
 
@@ -321,7 +325,19 @@ namespace Create_Shape {
                 return maker.CreateSquarePoints(mainGraph, bounding, domain);
             }
 
-            public int[] TestFlattenVertices(List<int[]> nums) {
+            public List<Vector3[]> TestCreateHemispherePoints(List<Vector2> mainGraph, List<Vector2> bound, Vector2 domain) {
+                return maker.CreateHemispherePoints(mainGraph, bound, domain, 3);
+            }
+            
+            public List<Vector3[]> TestCreateTrianglePoints(List<Vector2> mainGraph, List<Vector2> bound, Vector2 domain) {
+                return maker.CreateHemispherePoints(mainGraph, bound, domain, 1);
+            }
+
+            public List<Tri> TestCreateTris(List<Vector3[]> pts) {
+                return maker.CreateTris(pts);
+            }
+
+            public T[] TestFlattenVertices<T>(List<T[]> nums) {
                 return maker.FlattenVertices(nums);
             }
             public (Tri, Tri) TestGenerateQuadTris(int num1, int num2) {

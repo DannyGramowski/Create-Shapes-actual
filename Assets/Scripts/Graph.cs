@@ -19,8 +19,12 @@ namespace Create_Shape{
         private float stepSize;
         //[SerializeField] Vector2 graphRange;
 
+        public Graph(string equation, Vector2 graphRangeInput, int numSteps = 5) : 
+            this(new List<EquationInput>() { new EquationInput(equation), new EquationInput("0") },
+                graphRangeInput, numSteps) {
+        }
 
-        public Graph(List<Graph.EquationInput> equationInputs, UnityEngine.Vector2 graphRangeInput, int numSteps = 5) {
+        public Graph(List<EquationInput> equationInputs, Vector2 graphRangeInput, int numSteps = 5) {
             equations = new Equation[equationInputs.Count];
             points = new List<Vector2>[equationInputs.Count];
             graphRange = graphRangeInput;
@@ -55,9 +59,7 @@ namespace Create_Shape{
                    // Debug.Log("Input " + input + " graph length " + graph.Count);
                     return CreatePointValues(input, equation);
                     });
-                tasks[input] = task;   
-                //tasks[i].Start();
-//                tasks[i] = Task.Factory.StartNew(temp);
+                tasks[input] = task;
             }
             Task.WaitAll(tasks);
 
@@ -72,10 +74,8 @@ namespace Create_Shape{
                 Vector2 middleVector = new Vector2(x, y);
                 graph.Insert(graph.Count/2, middleVector);// +1 to get the middle index
             }
-          //  Debug.Log(Utility.EnumerableElementsToString(graph));
 
             Debug.Log("graph " + graph.Count);
-            //Debug.Log(Utility.EnumerableElementsToString(graph));
             return graph;
         }
 
