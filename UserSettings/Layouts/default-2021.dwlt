@@ -43,8 +43,8 @@ MonoBehaviour:
     y: 0
     width: 269.59998
     height: 770.8
-  m_MinSize: {x: 275, y: 50}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 276, y: 71}
+  m_MaxSize: {x: 4001, y: 4021}
   m_ActualView: {fileID: 14}
   m_Panes:
   - {fileID: 14}
@@ -74,7 +74,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 200}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 0
-  controlID: 88
+  controlID: 19
 --- !u!114 &4
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -94,8 +94,8 @@ MonoBehaviour:
     y: 0
     width: 212
     height: 595.2
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 201, y: 221}
+  m_MaxSize: {x: 4001, y: 4021}
   m_ActualView: {fileID: 15}
   m_Panes:
   - {fileID: 15}
@@ -409,22 +409,22 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Tests/Runtime
+    - Assets/Scenes
     m_Globs: []
     m_OriginalText: 
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Tests/Runtime
+  - Assets/Scenes
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\dgram\OneDrive\Documents\GitHub\Create-Shapes-actual
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 79}
-    m_SelectedIDs: 025c0000
-    m_LastClickedID: 23554
-    m_ExpandedIDs: 00000000d25b0000de5b000000ca9a3bffffff7f
+    m_SelectedIDs: fe5b0000
+    m_LastClickedID: 23550
+    m_ExpandedIDs: 00000000f45b0000025c000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -452,7 +452,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000d25b0000
+    m_ExpandedIDs: 00000000f45b0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -582,21 +582,21 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: 9eccffffecccffff4aceffffe0cfffff2ed0ffff8cd1ffff68d4ffffb6d4ffff14d6ffff80d6ffffced6ffff2cd8ffff54daffffa2daffff62dcffff3edeffff8cdeffffeadfffff34e1ffff82e1ffffe0e2ffff4ce3ffff9ae3fffff8e4ffff64e5ffffb2e5ffff10e7ffff3ae8ffff88e8ffffe6e9ffff5aeaffffa8eaffff06ecffff20edffff6eedffffcceeffff16f0ffff64f0ffffc2f1ffffe6f2ffff34f3ffff92f4ffff1ef5ffff6cf5ffffcaf6fffff4f7ffff42f8ffffa8f9ffff32fbffff
+      m_ExpandedIDs: cac5ffff1cc6ffff54c8ffffd6c8ffff28c9ffffe8caffffe8cbffff3accffffaacdffffa6cefffff8ceffff64d0ffffded0ffff30d1ffffa0d2ffff02d4ffff54d4ffffc0d5ffff20d7ffff72d7ffffded8ffffeed9ffff40daffffb0dbffff38deffff8adeffff28e0ffffaae0fffffce0ffff6ce2ffffc0e3ffff12e4ffff7ee5ffff00e6ffff52e6ffffbee7fffffce8ffff4ee9ffffbeeaffff82ebffffd4ebffff94edffff2eeeffff80eefffff0efffff64f0ffffb6f0ffff26f2ffffd4f3ffff24f4ffff5cf5ffff02f6ffff52f6ffffbcf7ffff34fbffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: 
-        m_OriginalName: 
+        m_Name: Directional Light
+        m_OriginalName: Directional Light
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: 0
+        m_UserData: 23266
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 11
+        m_OriginalEventType: 0
         m_IsRenamingFilename: 0
         m_ClientGUIView: {fileID: 4}
       m_SearchString: 
@@ -859,9 +859,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: -5.4392643, y: 10.014915, z: 1.4680161}
+    m_Target: {x: -33.235638, y: 2.4217541, z: -13.255338}
     speed: 2
-    m_Value: {x: -5.4392643, y: 10.014915, z: 1.4680161}
+    m_Value: {x: -33.235638, y: 2.4217541, z: -13.255338}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -908,13 +908,13 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: -0.25887543, y: 0.615627, z: -0.22458825, w: -0.70961165}
+    m_Target: {x: -0.20343763, y: 0.54698855, z: -0.13910079, w: -0.8000546}
     speed: 2
-    m_Value: {x: -0.25887522, y: 0.61562645, z: -0.22458805, w: -0.70961106}
+    m_Value: {x: -0.20343561, y: 0.5469831, z: -0.13909942, w: -0.8000467}
   m_Size:
-    m_Target: 21.908272
+    m_Target: 17.073372
     speed: 2
-    m_Value: 21.908272
+    m_Value: 17.073372
   m_Ortho:
     m_Target: 0
     speed: 2
