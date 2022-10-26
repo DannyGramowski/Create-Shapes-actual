@@ -25,7 +25,7 @@ namespace Create_Shape{
         }
 
         public double Execute(double value) {
-            return Execute(new[] { (_variables[0], value) });
+            return Execute(new[] {('x', value) });
         }
 
         //need input for variable value

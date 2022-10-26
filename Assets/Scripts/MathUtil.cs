@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
 
 namespace Create_Shape {
@@ -47,13 +48,35 @@ namespace Create_Shape {
             int subDivisions = 100;
             double output = 0;
             double previous = eq.Execute(lower);
+            double previousValue = lower;
             for (int i = 1; i <= subDivisions; i++) {
                 var value = (upper - lower) /subDivisions * i + lower;
-                var newy = eq.Execute(value) / subDivisions; 
-                output += (previous + newy)/2;
+                var newy = eq.Execute(value); 
+                output += (previous + newy)/2 * (value-previousValue);
                 previous = newy;
+                previousValue = value;
             }
             return output;
+        }
+
+        //wont work because I need to determine which derection to integrate(for x^2-4 I need to integrate dy)
+        public static float Volume(Equation eq, Vector2 bounds, MeshType meshType) {
+            Equation areaEq;
+            switch (meshType) {
+                case MeshType.Hemisphere:
+                    //I think the problem is that it needs to be the area for both sides(2x) but it is also double counting it(-2->0, 0->2)
+                    areaEq = new Equation($"{Math.PI}*(2*x)^2/2");
+                    break;
+                case MeshType.Square:
+                    areaEq = new Equation("(2*x)^2");
+                    break;
+                case MeshType.Triangle:
+                    areaEq = new Equation("0.4330127*(2*x)^2");//equilateral triangle
+                    break;
+                default:
+                    throw new NullReferenceException("mesh is null or other type");
+            }
+            return (float)Integrate(bounds.x, bounds.y, areaEq);
         }
     }
 }
